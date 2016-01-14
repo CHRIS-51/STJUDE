@@ -1,0 +1,12 @@
+
+This script calls MATHEMATICA to calculate
+CDF for hypergeometric distribution
+which we use to calculate significance
+
+using this input:
+p=population
+ss=success states
+nd=k=draws
+sd=successes
+
+Usage: mk-hyper population possible-successes draws successes

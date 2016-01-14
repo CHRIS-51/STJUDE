@@ -1,0 +1,226 @@
+#!/usr/bin/env python
+# read stdin and solve sudoku matrix
+# a much faster version of sud
+# // = int/
+import sys
+#import string
+#from Numeric import *
+from numpy import *
+#from sets import Set
+
+######################## FUNCTIONS ############################
+def sb(x):
+	for i in range(9):
+		for j in range(9):
+			print("%d " % x[i,j], end=' ')
+			#print x[i,j],
+		print()
+	print() 
+
+def fillv(x,y,val):
+	#global fld
+	global pos
+	fill=0
+	# intify s
+	#os = 3*(x/3) + (y/3)
+	#s = 3*int(x/3) + int(y/3)
+	s = 3*(x//3) + y//3
+	if val in row[x]:
+		fill += 1
+		if val in col[y]:
+			fill += 1
+			if val in squ[s]:
+				fill += 1
+				if v[x,y] == 0:
+					fill += 1
+
+	if fill == 4:
+		row[x].remove(val)
+		col[y].remove(val)
+		squ[s].remove(val)
+		v[x,y] = val
+		pos += 1
+		if pos % 4000 == 0:
+			print("Examined",pos,"positions - depth =",depth,100*fld//81,"%")
+		return 1
+	else:
+		if show_collision:
+			print("fillv collision:",x,y,val)
+			print("fill oval:",fill,v[x,y])
+			print(row)
+			print(col)
+			print(squ)
+			#print(v)
+			sb(v)
+			sys.exit()
+		# maybe elim just expanded a path push
+		return 0
+
+#deep copy
+def deep(obj):
+	xx=[]
+	for j in range(len(obj)):
+		s=set(obj[j])
+		xx.append(s)
+	return xx
+
+#process of elimination
+def elim():
+	mbv=0
+	tlo=0
+	tlf=0
+	for s in range(9):
+		xx=[]
+		for i in range(10):
+			xx.append([])
+		# intify x,y
+		#ox = int(3*(s/3))
+		x = 3*(s//3)
+		y = (s%3)*3
+		for i in range(x,x+3):
+			for j in range(y,y+3):
+				if v[i,j] > 0:
+					continue
+				t = row[i] & col[j] & squ[s]
+				for k in t:
+					xx[k].append((i,j))
+
+		#cell with 1 must get that number
+		for val in range(1,10):
+			if len(xx[val]) == 1:
+				r,c=xx[val][0]
+				tlo += 1
+				#sb(v)
+				tlf += fillv(r,c,val)
+	return tlo == tlf and tlo > 0
+
+def qfill():
+	# quickly fill in as many as you can
+	global v
+	global row
+	global col
+	global squ
+	global fld
+	global depth
+	quick=0
+	minl = 10
+	fld=0
+	for i in range(9):
+		for j in range(9):
+			if v[i,j] > 0:
+				fld += 1
+				continue 
+			# intify s
+			# os = int(3*(i/3) + (j/3))
+			#s = 3*int(i/3) + int(j/3)
+			s = 3*(i//3) + j//3
+			t = row[i] & col[j] & squ[s] 
+			if len(t) == 0:
+				continue
+			if len(t) < minl:
+				mint = t
+				mini = i
+				minj = j
+				mins = s
+				minl = len(t)
+				#print "best so far",i,j,s,len(t),t
+			if len(t) == 1:
+				val=t.pop()
+				#print i,j,s,"must be a",val
+				fillv(i,j,val)
+				quick=1
+
+	if minl == 10:
+		if fld == 81:
+			print("Examined",pos,"positions - depth=",depth)
+			print("Solution:")
+			sb(v)
+			sys.exit()
+		else:
+			return 0
+
+	quick=elim() or quick
+	if quick == 1:
+		#print "new values found"
+		q=qfill()
+		return q
+
+	#quick mbz here so call elim for fun
+	if quick == 0:
+		#print "NGE:",mini,minj,mins,minl,mint
+		for i in mint:
+			# use randint(a,b) to vary output
+			# by examining the output, this does not really copy lists
+			#print "Push to try:",mini,minj,i
+			
+			depth += 1
+			#print 'v',depth
+			dv=zeros((9,9))
+			for j in range(9):
+				for k in range(9):
+					dv[j,k]=v[j][k]
+			lr=deep(row)
+			lc=deep(col)
+			ls=deep(squ)
+			#f=fillv(mini,minj,i)
+			fillv(mini,minj,i)
+			#sb(v)
+			q=qfill()
+			if q == 0:
+				#print 'Pop',mini,minj,i
+				#print '^',depth
+				depth -= 1
+				for j in range(9):
+					for k in range(9):
+						v[j,k]=dv[j][k]
+				row=lr
+				col=lc
+				squ=ls
+		return 0
+########################### INIT ############################
+row=[]
+col=[]
+squ=[]
+v=zeros((9,9))
+depth=0
+pos=0
+fld=0
+rn = 0
+
+for i in range(9):
+	nine=set([1,2,3,4,5,6,7,8,9])
+	row.append(nine)
+	nine=set([1,2,3,4,5,6,7,8,9])
+	col.append(nine)
+	nine=set([1,2,3,4,5,6,7,8,9])
+	squ.append(nine)
+x=-1
+y=0
+show_collision=1
+########################### READ ############################
+while 1:
+	line = sys.stdin.readline()
+	if not line:
+		break
+	#v1 = string.rstrip(line)
+	v1 = line.rstrip()
+	vlen = len(v1)
+	if vlen == 0:
+		continue
+	y = 0
+	x += 1
+	for i in v1:
+		if y == 9:
+			y = 0
+			x += 1
+		n = ord(i)-48
+		if n > 0 and n < 10:
+			fillv(x,y,n)
+		y += 1
+show_collision=0
+sb(v)
+####################### SOLVE ###############################
+qfill()
+sb(v)
+print("Examined",pos,"positions - depth=",depth)
+print("No solution found")

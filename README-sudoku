@@ -1,0 +1,3 @@
+#solves sudoku puzzles
+
+cat matrix1 | sudfi

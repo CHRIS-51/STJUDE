@@ -1,0 +1,29 @@
+#
+# Calls MATHEMATICA to calculate
+# CDF hypergeometric distribuion
+# independent w/o replacement
+# using this input:
+# p=population
+# ss=success states
+# nd=k=draws
+# sd=successes
+
+p=$1
+ss=$2
+nd=$3
+sd=$4
+
+# set up 
+if [ -z "$p" ]
+then
+	gawk '{print $0}' | trsc > .m5.csv
+else
+	[ -z "$sd" ] && echo "$0: Usage population success-states draws successes" && exit
+	[ $sd -eq 0 ] && echo 0 && exit
+	echo $p $ss $nd $sd | trsc > .m5.csv
+fi
+
+# mathematica calculates 1-CDF[hyper[p,ss,nd,sd]]
+
+/Applications/Mathematica.app/Contents/MacOS/MathKernel < mk5.m >> /dev/null
+gawk '{print}' .m5h.csv 

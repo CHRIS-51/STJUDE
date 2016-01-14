@@ -1,0 +1,9 @@
+>Blast Matrix for Nucleotides
+
+A T C G
+ 5 -4 -4 -4
+-4  5 -4 -4
+-4 -4  5 -4
+-4 -4 -4  5
+
+-4

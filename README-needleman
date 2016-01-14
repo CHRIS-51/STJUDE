@@ -1,0 +1,14 @@
+
+BIOL7023 - Lab5 - Chris Hill
+
+The main program here is needleman.pl
+
+syntax:
+needleman.pl sequence1.fna sequence2.fna OPTION > needleman_results.txt
+
+where OPTION is zero or more space separated options:
+	m = show solution matrix
+	b = show backtrace
+
+the program will automatically pick the correct file as the scoring matrix
+
